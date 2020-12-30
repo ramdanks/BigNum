@@ -192,12 +192,26 @@ void uint128::div( uint128 const& other )
 
 void uint128::add( uint128 const& other )
 {
+    auto thisval = reinterpret_cast<uint64_t*>( m_buffer );
+    auto otherval = (const uint64_t*) other.m_buffer;
+    bool overflow0 = false;
+    bool overflow1 = false;
+    if ( thisval[0] > FULL64 - otherval[0] ) overflow0 = true;
+    if ( thisval[1] > FULL64 - otherval[1] ) overflow1 = true;
+    thisval[0] += otherval[0];
+    thisval[1] += otherval[1];
+    if ( overflow0 ) ++thisval[1];
+    if ( overflow1 )
+    {
+        if ( thisval[0] == FULL64 ) ++thisval[1];
+        ++thisval[0];
+    }
 }
 
 void uint128::sub( uint128 const& other )
 {
     auto thisval = reinterpret_cast<uint64_t*>( m_buffer );
-    
+
 }
 
 void uint128::inc()
@@ -234,5 +248,9 @@ std::ostream& operator<<( std::ostream& out, uint128 const& val )
 {
     auto thisval = (uint64_t*) val.m_buffer;
     if ( thisval[1] == 0x00 ) return out << thisval[0];
-    return out << thisval[1];
+
+    uint8_t first = 0;
+    uint64_t second = 0, third = 0;
+    
+    return out << first << second << third;
 }
